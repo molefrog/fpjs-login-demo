@@ -195,3 +195,36 @@ You can also [pass `{ immediate: false }`](https://github.com/fingerprintjs/fing
 to manually trigger the identification process. 
 
 👉 **[Commit](https://github.com/molefrog/fpjs-login-demo/commit/6e658467a339c7c025e22d42c20ce61af6c512cb)**
+
+The only remaining part now is figuring out if we want to block current request when the number of attempts exceeds the threshold. In order to do
+that, we just have write a simple query: it will get the number of attempts coming from this visitor within a fixed time interval:
+
+```tsx
+export async function shouldThrottleLoginRequest(
+  visitorId: string,
+  options: ThrottlingOptions = { maxAttempts: 5, periodMins: 5 }
+): Promise<boolean> {
+  // when does the throttling window start
+  const startTime = Date.now() - options.periodMins * 60 * 1000;
+
+  // get the number of failed login attempts for the current visitor
+  const row = await db.get<{ numAttempts: number }>(
+    `SELECT count(*) as numAttempts FROM login_attempts 
+      WHERE visitor_id = (?) AND created_at > (?)`,
+    visitorId,
+    startTime
+  );
+
+  // threshold exceeded - block the request!
+  if (Number(row?.numAttempts) > options.maxAttempts) {
+    return true;
+  }
+
+  return false;
+}
+```
+
+👉 **[Commit](https://github.com/molefrog/fpjs-login-demo/commit/b9bf0cff62a15a169f8fac4e70ef347777878d7c)**
+
+And that's it! Now our login form is protected against credential stuffing attacks. Obviously, there is a lot of things you can further improve in this 
+implementation but I hope this tutorial helped you to get a basic glance of how visitor-based request throttling works. 
