@@ -79,7 +79,7 @@ export const action: ActionFunction = async ({ request }) => {
 Alright, now it's time to implement a real authentication which will rely on email and password stored in a database. To do that, we're going to 
 create a SQLite database and provision it with some users. Let's initialize a new database file and create `users` table. Tip: to speed things up, use a GUI client like SQLPro. 
 
-```bash
+```sql
 CREATE TABLE "users" (
   "id" integer PRIMARY KEY NOT NULL,
   "email" char(128) NOT NULL,
@@ -121,3 +121,38 @@ Remix](https://remix.run/docs/en/v1/guides/constraints) uses to exclude server-s
 (the library `sqlite` we're using can only be used within Node). 
 
 👉 **[Commit](https://github.com/molefrog/fpjs-login-demo/commit/408ab58842e84b38030a2d0ec6a6445ab40068e9)**
+
+## 4. Introducing Request Throttling
+
+Finally, let's ensure that our login form is protected against malicious bots trying to brute force credentials. We're going to log all unsuccessful 
+login attempts and then block the requests that happen suspiciously too often. Let's create a new table `login_attempts`:
+
+```sql
+CREATE TABLE "login_attempts" (
+  "id" integer PRIMARY KEY NOT NULL,
+  "visitor_id" char(128),
+  "created_at" timestamp(128) NOT NULL,
+  "email" char(128) NOT NULL
+)
+```
+
+We'll need some way to identify requests: obviously, we can't fully rely on the email as well as on the IP (since there might be users who are sitting 
+behind a NAT) – and that's where `visitor_id` column comes in. We will soon see how to obtain that identifier but for now let's write a logging function.
+
+```tsx 
+// call this method when authentication wasn't successful
+export async function logFailedLoginAttempt(
+  email: string,
+  visitorId: string
+): Promise<void> {
+  const db = await openDB(); // open and init SQLite DB
+
+  await db.run(
+    "INSERT INTO login_attempts (email, visitor_id, created_at) VALUES (?, ?, ?)",
+    email,
+    visitorId,
+    Date.now()
+  );
+}
+
+👉 **[Commit](https://github.com/molefrog/fpjs-login-demo/commit/3548c72f84394fb98241c81095f79a2647916415)**
