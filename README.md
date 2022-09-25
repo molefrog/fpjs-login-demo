@@ -27,3 +27,50 @@ npx create-remix@latest login-app
 ```
 
 👉 **[Commit](https://github.com/molefrog/fpjs-login-demo/commit/106167647f78c06520dd83ccaef239ab1387e096)**
+
+## 2. Shaping Up Our Login Form
+
+It's nice to start with some fake implementation first, so we can focus on the real logic later on. While it's always fun to write CSS, for 
+the prototype I recommend using something that doesn't require much configuration (like classeless CSS framework [new.css](https://newcss.net/)).
+
+👉 **[Commit](https://github.com/molefrog/fpjs-login-demo/commit/3285d1153486f4fdd92176f7ce016e7ae1db9130)**
+
+Remix provides a handy component `Form` for form submission and `useTransition` hook that we're going to use for a loader. 
+
+```tsx
+import { useTransition, Form } from "@remix-run/react";
+
+const transition = useTransition();
+
+// Transitions in Remix represent the navigation state
+// That's how we know if the form is being sumbitted or not
+const isLoading = transition.state !== "idle";
+
+return (
+  <Form method="post" action="/login">
+    {/* form fields and loading indicator */}
+  </Form>
+)
+```
+
+Next, let's implement fake form submission: it's will only accept one hardcoded email and return an error otherwise.
+
+```tsx
+export const action: ActionFunction = async ({ request }) => {
+  const data = await request.formData();
+
+  const username = data.get("email") as string;
+
+  // login successful!
+  if (username === "admin@example.com") {
+    return redirect("/account");
+  }
+
+  return json<FormResponse>({
+    errorMessage: "Bad luck, please try different login or password!"
+  });
+};
+```
+
+👉 **[Commit](https://github.com/molefrog/fpjs-login-demo/commit/4e3edd4717c6409e321730a275d64b87a509c126)**
+
