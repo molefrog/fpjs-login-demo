@@ -228,3 +228,10 @@ export async function shouldThrottleLoginRequest(
 
 And that's it! Now our login form is protected against credential stuffing attacks. Obviously, there is a lot of things you can further improve in this 
 implementation but I hope this tutorial helped you to get a basic glance of how visitor-based request throttling works. 
+
+## Further Reading
+- [Standford Web Security lectures](https://web.stanford.edu/class/cs253/) by [@feross](https://twitter.com/feross)
+- [FingerprintJS official documentation](https://dev.fingerprint.com/docs/pro-vs-open-source)
+
+## Running the code locally
+Just run `npm run dev` and you're good to go.
