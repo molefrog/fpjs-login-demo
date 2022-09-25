@@ -154,5 +154,44 @@ export async function logFailedLoginAttempt(
     Date.now()
   );
 }
+```
 
 👉 **[Commit](https://github.com/molefrog/fpjs-login-demo/commit/3548c72f84394fb98241c81095f79a2647916415)**
+
+Identifying visitors could be tricky as most of the bots are already aware of standard methods such as cookies, or IP-based identification. 
+That's exactly the problem FingerprintJS solves! It is an [open-source library](https://github.com/fingerprintjs/fingerprintjs/) for bullet-proof 
+device identification and it also has a Pro version with more advanced features such as persistent visitor IDs or backend-based fingerprinting.
+
+In this demo, we're going to use an [official React library](https://github.com/fingerprintjs/fingerprintjs-pro-react) can be integrated in just 
+few minutes. 
+
+First of all, we will need to wrap our app in `FpjsProvider` to allow underlying components to use the library:
+
+```tsx
+// app/root.tsx
+{/* 
+  By wrapping the <Outlet /> with <FpjsProvider /> we ensure that all routes
+  in our app can properly access Fingerprint's API
+*/}
+<FpjsProvider loadOptions={{ apiKey: FPJS_API_KEY }}>
+  <Outlet />
+</FpjsProvider>
+```
+
+Remix provides `app/root.tsx` file where you can customize the app-wide layout. Now, in our login component we're going to use `useVisitorData` hook
+to obtain the visitor id. Note that this hook is asynchrounous and this is why it returns `isLoading` flag.
+
+```tsx
+// routes/login.tsx
+import { useVisitorData } from "@fingerprintjs/fingerprintjs-pro-react";
+
+// Get the current browser identifier
+const { isLoading: isVisitorIdLoading, data: visitorData } = useVisitorData();
+
+const visitorId = visitorData?.visitorId;
+```
+
+You can also [pass `{ immediate: false }`](https://github.com/fingerprintjs/fingerprintjs-pro-react#getting-started) to the hook if you'd like 
+to manually trigger the identification process. 
+
+👉 **[Commit](https://github.com/molefrog/fpjs-login-demo/commit/6e658467a339c7c025e22d42c20ce61af6c512cb)**
