@@ -88,7 +88,7 @@ export async function shouldThrottleLoginRequest(
   );
 
   // threshold exceeded
-  if (Number(row?.numAttempts) > options.maxAttempts) {
+  if (Number(row?.numAttempts) >= options.maxAttempts) {
     return true;
   }
 
@@ -97,7 +97,7 @@ export async function shouldThrottleLoginRequest(
 
 const openDB = async () => {
   return await open({
-    filename: "./app/db/db.sqlite",
+    filename: "./data/db.sqlite",
     driver: sqlite3.Database,
   });
 };
