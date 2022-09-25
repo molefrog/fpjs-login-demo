@@ -74,3 +74,50 @@ export const action: ActionFunction = async ({ request }) => {
 
 👉 **[Commit](https://github.com/molefrog/fpjs-login-demo/commit/4e3edd4717c6409e321730a275d64b87a509c126)**
 
+## 3. Wiring It Up
+
+Alright, now it's time to implement a real authentication which will rely on email and password stored in a database. To do that, we're going to 
+create a SQLite database and provision it with some users. Let's initialize a new database file and create `users` table. Tip: to speed things up, use a GUI client like SQLPro. 
+
+```bash
+CREATE TABLE "users" (
+  "id" integer PRIMARY KEY NOT NULL,
+  "email" char(128) NOT NULL,
+  "password" char(128) NOT NULL,
+  "username" char(128) NOT NULL
+)
+```
+
+> ⚠️ Warning: while in this particular example we use passwords as-is, you should never ever store passwords in plain text! 
+> Always rely on hashed and salted values instead. [Read this](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html)
+> for more information.
+
+Now when a request comes in we just need to find if that email-password pair matches any 
+record in our database:
+
+```tsx 
+// routes/index.tsx
+import { findUserByCredentials } from "../db/queries.server";
+
+// loader
+export const action: ActionFunction = async ({ request }) => {
+  // ... extract email and password from FormData
+
+  const user = await findUserByCredentials(email, password);
+
+  if (!user) {
+    // no user found, respond with an error message
+    return json<FormResponse>({
+      errorMessage: "Bad luck, please try different login or password!"
+    });
+  }
+
+  // respond with a redirect
+}
+```
+
+You might notice that the file we're importing `findUserByCredentials` from is called `queries.server.ts`. That is a special [naming convention
+Remix](https://remix.run/docs/en/v1/guides/constraints) uses to exclude server-side code from the bundle when it can't automatically prune it
+(the library `sqlite` we're using can only be used within Node). 
+
+👉 **[Commit](https://github.com/molefrog/fpjs-login-demo/commit/408ab58842e84b38030a2d0ec6a6445ab40068e9)**
