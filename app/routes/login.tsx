@@ -1,7 +1,13 @@
 import { ActionFunction, json, redirect } from "@remix-run/node";
-import { Form, useActionData, useTransition } from "@remix-run/react";
+import {
+  Form,
+  useActionData,
+  useTransition,
+  useLoaderData,
+} from "@remix-run/react";
 
 import { delay } from "../utils/delay";
+import { findUserByCredentials } from "../db/queries.server";
 
 // describes the reponse type of the action
 interface FormResponse {
@@ -20,18 +26,20 @@ export const action: ActionFunction = async ({ request }) => {
 
   const data = await request.formData();
 
-  const username = data.get("email") as string;
-  const password = data.get("password") as string;
+  const user = await findUserByCredentials(
+    data.get("email") as string,
+    data.get("password") as string
+  );
 
-  // TODO: connect to the real DB
-  if (username === "admin@example.com") {
-    return redirect("/account");
+  // no such user found, return an error
+  if (!user) {
+    return json<FormResponse>({
+      errorMessage: "Bad luck, please try different login or password!",
+      errorCode: LoginErrorCode.wrongCredentials,
+    });
   }
 
-  return json<FormResponse>({
-    errorMessage: "Bad luck, please try different login or password!",
-    errorCode: LoginErrorCode.wrongCredentials,
-  });
+  return redirect("/account");
 };
 
 // returns a formatted error icon based on the error code
