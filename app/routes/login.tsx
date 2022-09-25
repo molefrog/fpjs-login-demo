@@ -7,7 +7,10 @@ import {
 } from "@remix-run/react";
 
 import { delay } from "../utils/delay";
-import { findUserByCredentials } from "../db/queries.server";
+import {
+  findUserByCredentials,
+  logFailedLoginAttempt,
+} from "../db/queries.server";
 
 // describes the reponse type of the action
 interface FormResponse {
@@ -24,15 +27,18 @@ export const action: ActionFunction = async ({ request }) => {
   // An artificial delay for the demonstration purposes
   await delay(1000);
 
+  // parse form data provided
   const data = await request.formData();
+  const email = data.get("email") as string;
+  const password = data.get("password") as string;
 
-  const user = await findUserByCredentials(
-    data.get("email") as string,
-    data.get("password") as string
-  );
+  const user = await findUserByCredentials(email, password);
 
   // no such user found, return an error
   if (!user) {
+    const visitorId = "fake"; // TODO: replace with the real one
+    await logFailedLoginAttempt(email, visitorId);
+
     return json<FormResponse>({
       errorMessage: "Bad luck, please try different login or password!",
       errorCode: LoginErrorCode.wrongCredentials,
