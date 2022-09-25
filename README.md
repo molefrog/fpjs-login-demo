@@ -13,3 +13,17 @@ What you'll learn in this tutoral:
 - How to implement a basic login attemps logging
 - How to use Fingerprint's [React integration](https://github.com/fingerprintjs/fingerprintjs-pro-react) to get the current browser identifier
 - How to implement request throttling based on that identifier
+
+## 1. Getting Started
+Let's bootstrap our app! 
+
+We're going to use [Remix](https://remix.run/) – a React framework which is currently getting a nice adoption in the 
+web community. Remix uses a slightly different approach from other isomorphic React toolkits utilizing a concept of loaders and actions. 
+It might sound a bit complicated, but please bear with me, it's going to be fun!
+
+```bash
+# let's bootstrap a basic Remix app
+npx create-remix@latest login-app
+```
+
+👉 **[Commit](https://github.com/molefrog/fpjs-login-demo/commit/106167647f78c06520dd83ccaef239ab1387e096)**
