@@ -17,7 +17,7 @@ interface LoginAttempt {
   created_at: number;
 }
 
-/*
+/**
  * Loads user that matches the email and password provided
  */
 export async function findUserByCredentials(
@@ -56,6 +56,43 @@ export async function logFailedLoginAttempt(
     visitorId || null,
     Date.now()
   );
+}
+
+interface ThrottlingOptions {
+  // no more than `maxAttempts` within a `periodMins` time window
+  maxAttempts: number;
+  periodMins: number;
+}
+
+/**
+ * Checks if the number of allowed sign in attempts has been exceeded
+ *
+ * @param visitorId - unique identifier of the actor performing the sign in
+ * @param options - throttling settings
+ */
+export async function shouldThrottleLoginRequest(
+  visitorId: string,
+  options: ThrottlingOptions = { maxAttempts: 5, periodMins: 5 }
+): Promise<boolean> {
+  const db = await openDB();
+
+  // when does the throttling window start
+  const startTime = Date.now() - options.periodMins * 60 * 1000;
+
+  // get the number of failed login attempts for the current visitor
+  const row = await db.get<{ numAttempts: number }>(
+    `SELECT count(*) as numAttempts FROM login_attempts 
+      WHERE visitor_id = (?) AND created_at > (?)`,
+    visitorId,
+    startTime
+  );
+
+  // threshold exceeded
+  if (Number(row?.numAttempts) > options.maxAttempts) {
+    return true;
+  }
+
+  return false;
 }
 
 const openDB = async () => {

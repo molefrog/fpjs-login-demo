@@ -5,13 +5,13 @@ import {
   useTransition,
   useLoaderData,
 } from "@remix-run/react";
-
 import { useVisitorData } from "@fingerprintjs/fingerprintjs-pro-react";
 
 import { delay } from "../utils/delay";
 import {
   findUserByCredentials,
   logFailedLoginAttempt,
+  shouldThrottleLoginRequest,
 } from "../db/queries.server";
 
 // describes the reponse type of the action
@@ -27,7 +27,7 @@ enum LoginErrorCode {
 
 export const action: ActionFunction = async ({ request }) => {
   // An artificial delay for the demonstration purposes
-  await delay(1000);
+  await delay(500);
 
   // parse form data provided
   const data = await request.formData();
@@ -37,6 +37,15 @@ export const action: ActionFunction = async ({ request }) => {
   const visitorId = data.get("visitorId") as string;
 
   const user = await findUserByCredentials(email, password);
+
+  // limit potentially malicious requests
+  if (visitorId && (await shouldThrottleLoginRequest(visitorId))) {
+    return json<FormResponse>({
+      errorMessage:
+        "We detected multiple log in attempts for this user, but we didn't perform the login action",
+      errorCode: LoginErrorCode.securityAlert,
+    });
+  }
 
   // no such user found, return an error
   if (!user) {
@@ -70,7 +79,6 @@ export default function Login() {
 
   // Get the current browser identifier
   const { isLoading: isVisitorIdLoading, data: visitorData } = useVisitorData();
-
   const visitorId = visitorData?.visitorId;
 
   // Transitions in Remix represent the navigation state
@@ -106,7 +114,7 @@ export default function Login() {
           <input type="password" name="password" disabled={isLoading} />
         </p>
 
-        <input type="hidden" name="visitorId" value={visitorId} />
+        <input type="hidden" name="visitorId" value={String(visitorId)} />
 
         <p>
           <small>
