@@ -6,6 +6,8 @@ import {
   useLoaderData,
 } from "@remix-run/react";
 
+import { useVisitorData } from "@fingerprintjs/fingerprintjs-pro-react";
+
 import { delay } from "../utils/delay";
 import {
   findUserByCredentials,
@@ -29,14 +31,15 @@ export const action: ActionFunction = async ({ request }) => {
 
   // parse form data provided
   const data = await request.formData();
+
   const email = data.get("email") as string;
   const password = data.get("password") as string;
+  const visitorId = data.get("visitorId") as string;
 
   const user = await findUserByCredentials(email, password);
 
   // no such user found, return an error
   if (!user) {
-    const visitorId = "fake"; // TODO: replace with the real one
     await logFailedLoginAttempt(email, visitorId);
 
     return json<FormResponse>({
@@ -65,9 +68,17 @@ export default function Login() {
   const formResponse = useActionData<FormResponse>();
   const transition = useTransition();
 
+  // Get the current browser identifier
+  const { isLoading: isVisitorIdLoading, data: visitorData } = useVisitorData();
+
+  const visitorId = visitorData?.visitorId;
+
   // Transitions in Remix represent the navigation state
   // That's how we know if the form is being sumbitted or not
-  const isLoading = transition.state !== "idle";
+  const isSubmitting = transition.state !== "idle";
+
+  // We can't use the form when there are unfinished async tasks
+  const isLoading = isSubmitting || isVisitorIdLoading;
 
   return (
     <section>
@@ -87,13 +98,16 @@ export default function Login() {
         <p>
           <label>Email</label>
           <br />
-          <input type="email" name="email" autoFocus />
+          <input type="email" name="email" autoFocus disabled={isLoading} />
         </p>
         <p>
           <label>Password</label>
           <br />
-          <input type="password" name="password" />
+          <input type="password" name="password" disabled={isLoading} />
         </p>
+
+        <input type="hidden" name="visitorId" value={visitorId} />
+
         <p>
           <small>
             👌 We deeply care about the privacy of our users. You can rest
@@ -103,7 +117,7 @@ export default function Login() {
 
         <p>
           <button type="submit" disabled={isLoading}>
-            {isLoading ? "Please wait..." : <dd>Log In</dd>}
+            {isSubmitting ? "Please wait..." : <dd>Log In</dd>}
           </button>
         </p>
       </Form>

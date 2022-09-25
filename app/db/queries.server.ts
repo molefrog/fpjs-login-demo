@@ -41,18 +41,19 @@ export async function findUserByCredentials(
  * Creates new `login_attempt` record in the DB
  *
  * @param email - email used for authentication
- * @param visitorId - the unique browser/visitor identifier
+ * @param visitorId? - the unique browser/visitor identifier, can be empty when identification
+ * wasn't successful
  */
 export async function logFailedLoginAttempt(
   email: string,
-  visitorId: string
+  visitorId?: string
 ): Promise<void> {
   const db = await openDB();
 
   await db.run(
     "INSERT INTO login_attempts (email, visitor_id, created_at) VALUES (?, ?, ?)",
     email,
-    visitorId,
+    visitorId || null,
     Date.now()
   );
 }

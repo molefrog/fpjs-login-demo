@@ -1,4 +1,5 @@
 import type { MetaFunction } from "@remix-run/node";
+import { json } from "@remix-run/node";
 import {
   Links,
   LiveReload,
@@ -6,7 +7,18 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  useLoaderData,
 } from "@remix-run/react";
+
+import { FpjsProvider } from "@fingerprintjs/fingerprintjs-pro-react";
+
+// Remix doesn't include server env variables in the bundle by default so we have to
+// pass it to the browser via loader.
+//
+// See: https://remix.run/docs/en/v1/guides/envvars#browser-environment-variables
+export function loader() {
+  return json({ FPJS_API_KEY: process.env.FPJS_API_KEY });
+}
 
 export const meta: MetaFunction = () => ({
   charset: "utf-8",
@@ -15,6 +27,8 @@ export const meta: MetaFunction = () => ({
 });
 
 export default function App() {
+  const { FPJS_API_KEY } = useLoaderData();
+
   return (
     <html lang="en">
       <head>
@@ -38,7 +52,14 @@ export default function App() {
           <h1>🥷 Secure Website</h1>
         </header>
 
-        <Outlet />
+        {/* 
+          By wrapping the <Outlet /> with <FpjsProvider /> we ensure that all routes
+          in our app can properly access Fingerprint's API
+        */}
+        <FpjsProvider loadOptions={{ apiKey: FPJS_API_KEY }}>
+          <Outlet />
+        </FpjsProvider>
+
         <ScrollRestoration />
         <Scripts />
         <LiveReload />
