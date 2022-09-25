@@ -116,12 +116,10 @@ export default function Login() {
 
         <input type="hidden" name="visitorId" value={String(visitorId)} />
 
-        <p>
-          <small>
-            👌 We deeply care about the privacy of our users. You can rest
-            assured that your data <b>never gets leaked</b>.
-          </small>
-        </p>
+        <details>
+          <summary>Can't log in? Try these credentials</summary>
+          <code>daniel@example.com</code> and <code>foobar</code>
+        </details>
 
         <p>
           <button type="submit" disabled={isLoading}>
@@ -129,6 +127,16 @@ export default function Login() {
           </button>
         </p>
       </Form>
+
+      <br />
+      <hr />
+
+      <p>
+        <small>
+          👌 We deeply care about the privacy of our users. You can rest assured
+          that your data <b>never gets leaked</b>.
+        </small>
+      </p>
     </section>
   );
 }
