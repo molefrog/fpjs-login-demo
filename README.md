@@ -4,6 +4,8 @@ In this demo we're going to explore how [FingerpringJS Pro](https://fingerprint.
 against automated [credential stuffing attacks](https://auth0.com/resources/whitepapers/credential-stuffing-attacks). To to so, we're going to 
 build a simple login form experience with a server-side request throttling based on the current [`visitorId`](https://dev.fingerprint.com/docs/js-agent#visitorid).
 
+![The application we're going to build](https://github.com/molefrog/fpjs-login-demo/blob/main/static/app-screenshot.png?raw=true)
+
 Why is this important? Almost every app on the Web starts with a login form. Although, developers have being doing this for years, it's always hard 
 to build a bulletproof and secure login and session management in your apps. User credentials are [being leaked](https://haveibeenpwned.com/) all 
 the time, mature businesses are not the exceptions.
